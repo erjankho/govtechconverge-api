@@ -1,0 +1,20 @@
+.DS_Store
+
+# Ignore docker files.
+.dockerignore
+*.Dockerfile
+
+# Ignore git directory and files.
+.git
+.gitignore
+.gitattributes
+
+# Ignore node modules.
+node_modules
+
+# Ignore out directories.
+build
+dist
+
+# Ignore environment variables.
+.env*

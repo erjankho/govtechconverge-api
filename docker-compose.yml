@@ -1,0 +1,29 @@
+services:
+  openconverge-db:
+    image: openconverge-db:latest
+    container_name: openconverge-db
+    build:
+      dockerfile: ./db.Dockerfile
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: openconverge-dev
+    volumes:
+      - openconverge-db:/var/lib/postgresql/data
+
+  openconverge-api:
+    image: openconverge-api:latest
+    platform: linux/amd64
+    container_name: openconverge-api
+    build:
+      context: .
+      dockerfile: ./app.Dockerfile
+      platforms:
+        - linux/amd64
+    ports:
+      - "8001:8001"
+
+volumes:
+  openconverge-db:

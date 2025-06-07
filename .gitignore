@@ -1,0 +1,23 @@
+.DS_Store
+
+# Ignore editor directories and files.
+.idea
+.vscode*
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Ignore node modules.
+node_modules
+
+# Ignore out directories.
+build
+dist
+out
+
+# Ignore environment variables.
+.env*
+!.env.example
+!.env.test.example
