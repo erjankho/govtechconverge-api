@@ -1,11 +1,11 @@
 import { Command } from 'commander';
 
-import dbDropAction from './cmd/db:drop.js';
-import dbMigrateAction from './cmd/db:migrate.js';
-import dbPlanAction from './cmd/db:plan.js';
-import dbRollbackAction from './cmd/db:rollback.js';
+import dbDropAction from './cmd/db-drop.js';
+import dbMigrateAction from './cmd/db-migrate.js';
+import dbPlanAction from './cmd/db-plan.js';
+import dbRollbackAction from './cmd/db-rollback.js';
 import serverAction from './cmd/server.js';
-import syncOneDriveAction from './cmd/sync:onedrive.js';
+import syncOneDriveAction from './cmd/sync-onedrive.js';
 
 const program = new Command('converge')
   .description('CLI for Converge')
