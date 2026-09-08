@@ -81,7 +81,21 @@ To contribute code, you'll need to set up your development environment.
 **Prerequisites:**
 
 - **Node.js:** Version 22 or 23. You can use a version manager like [fnm](https://github.com/Schniz/fnm) or [nvm](https://github.com/nvm-sh/nvm) to manage Node.js versions.
-- **pnpm:** We use `pnpm` for package management. Install it using Homebrew: `brew install pnpm`, or follow the official [pnpm installation guide](https://pnpm.io/installation) for other systems.
+- **pnpm:** We use `pnpm` for package management. The exact version is pinned by the `packageManager` field in `package.json`. The simplest way to get that version is [Corepack](https://nodejs.org/api/corepack.html), which ships with Node.js and reads the pin for you:
+
+  ```sh
+  corepack enable pnpm
+  ```
+
+  On Windows, `corepack enable` writes shims into the Node.js install directory and may fail with `EPERM` unless run from an elevated terminal. If that happens, install pnpm directly instead:
+
+  | Platform      | Command                                         |
+  | :------------ | :---------------------------------------------- |
+  | macOS / Linux | `brew install pnpm`                             |
+  | Windows       | `winget install pnpm.pnpm`                      |
+  | Any           | `npm install -g pnpm` (ignores the version pin) |
+
+  See the official [pnpm installation guide](https://pnpm.io/installation) for further options.
 
 **Steps:**
 
@@ -102,7 +116,7 @@ To contribute code, you'll need to set up your development environment.
 3.  **Spin up a local database:**
 
     ```sh
-    docker compose up --build -d converge-db
+    docker compose up --build -d openconverge-db
     ```
 
 4.  **Run database migration:**

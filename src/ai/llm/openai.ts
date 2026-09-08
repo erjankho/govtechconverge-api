@@ -1,17 +1,5 @@
 import { OpenAI as LLM } from 'openai';
 
-const OPENAI_CHAT_MODELS = {
-  'gpt-4o': {
-    MAX_INPUT_TOKEN: 128000,
-  },
-} as const;
-
-const OPENAI_EMBEDDING_MODELS = {
-  'text-embedding-ada-002': {
-    MAX_INPUT_TOKEN: 8191,
-  },
-} as const;
-
 const OPENAPI_CHAT_COMPLETION_TOOLS: LLM.ChatCompletionTool[] = [
   {
     type: 'function',
@@ -56,24 +44,20 @@ const OPENAPI_CHAT_COMPLETION_TOOLS: LLM.ChatCompletionTool[] = [
   },
 ];
 
-export type OpenAIChatModel = keyof typeof OPENAI_CHAT_MODELS;
-export type OpenAIEmbeddingModel = keyof typeof OPENAI_EMBEDDING_MODELS;
+/**
+ * The name of a chat model, sourced from the `OPENAI_CHAT_MODEL` environment
+ * variable. Any model served by the configured `OPENAI_API_BASE_URL` is
+ * accepted, including gateway-namespaced names such as `openai.gpt-oss-120b`
+ * on Amazon Bedrock.
+ */
+export type OpenAIChatModel = string;
 
 /**
- * Returns `true` if the given model is a valid and supported, else `false`.
- * @param model - The name of the model.
+ * The name of an embedding model, sourced from the `OPENAI_EMBEDDING_MODEL`
+ * environment variable. Note that the `embeddings` and `email_embeddings`
+ * tables store `vector(1536)`, so the model must emit 1536-dimension vectors.
  */
-export function isOpenAIChatModel(model: string): model is OpenAIChatModel {
-  return Object.keys(OPENAI_CHAT_MODELS).includes(model);
-}
-
-/**
- * Returns `true` if the given model is a valid and supported, else `false`.
- * @param model - The name of the model.
- */
-export function isOpenAIEmbeddingModel(model: string): model is OpenAIEmbeddingModel {
-  return Object.keys(OPENAI_EMBEDDING_MODELS).includes(model);
-}
+export type OpenAIEmbeddingModel = string;
 
 export interface OpenAIChatSystemMessage {
   content: string;
@@ -136,7 +120,7 @@ export default OpenAI;
 interface OpenAIChatInvokeParams {
   systemPrompt: string;
   messages: (OpenAIChatUserMessage | OpenAIChatAssistantMessage | OpenAIChatToolMessage)[];
-  model?: OpenAIChatModel;
+  model: OpenAIChatModel;
 }
 
 class OpenAIChat {
@@ -155,7 +139,7 @@ class OpenAIChat {
   async invoke({
     systemPrompt,
     messages,
-    model = 'gpt-4o',
+    model,
   }: OpenAIChatInvokeParams): Promise<
     OpenAIChatCompletionMessage | OpenAIChatCompletionMessageContent
   > {

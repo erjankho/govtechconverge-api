@@ -1,5 +1,4 @@
 import type { OpenAIChatModel, OpenAIEmbeddingModel } from '../ai/llm/openai.js';
-import { isOpenAIChatModel, isOpenAIEmbeddingModel } from '../ai/llm/openai.js';
 import { loadEnv } from '../internal/load-env.js';
 
 export interface ServerConfig {
@@ -15,7 +14,6 @@ export interface ServerConfig {
   PORT: number;
   /**
    * The connection string to Postgres.
-   * @default 'postgres://root:secret@localhost:5432/converge-development'
    */
   POSTGRES_DSN: string;
   /**
@@ -33,26 +31,27 @@ export interface ServerConfig {
   OPENAI_API_BASE_URL: string;
   /**
    * The chat model for OpenAI.
-   * @default 'gpt-4o'
    */
   OPENAI_CHAT_MODEL: OpenAIChatModel;
   /**
    * The embedding model for OpenAI.
-   * @default 'text-embedding-ada-002'
    */
   OPENAI_EMBEDDING_MODEL: OpenAIEmbeddingModel;
   /**
    * The tenant ID for Microsoft Graph API.
+   * Only required by the 'retrieveEmails' tool.
    */
-  MSGRAPH_API_TENANT_ID: string;
+  MSGRAPH_API_TENANT_ID?: string;
   /**
    * The client ID for Microsoft Graph API.
+   * Only required by the 'retrieveEmails' tool.
    */
-  MSGRAPH_API_CLIENT_ID: string;
+  MSGRAPH_API_CLIENT_ID?: string;
   /**
    * The client secret for Microsoft Graph API.
+   * Only required by the 'retrieveEmails' tool.
    */
-  MSGRAPH_API_CLIENT_SECRET: string;
+  MSGRAPH_API_CLIENT_SECRET?: string;
 }
 
 export function loadServerConfig(): ServerConfig {
@@ -65,6 +64,11 @@ export function loadServerConfig(): ServerConfig {
     );
   }
 
+  const POSTGRES_DSN = env.POSTGRES_DSN;
+  if (!POSTGRES_DSN) {
+    throw new Error("'POSTGRES_DSN' environment variable is required.");
+  }
+
   const OPENAI_API_KEY = env.OPENAI_API_KEY;
   if (!OPENAI_API_KEY) {
     throw new Error("'OPENAI_API_KEY' environment variable is required.");
@@ -74,38 +78,27 @@ export function loadServerConfig(): ServerConfig {
     throw new Error("'OPENAI_API_BASE_URL' environment variable is required.");
   }
 
-  const OPENAI_CHAT_MODEL = env.OPENAI_CHAT_MODEL || 'gpt-4o';
-  if (!isOpenAIChatModel(OPENAI_CHAT_MODEL)) {
-    throw new Error(
-      `'OPENAI_CHAT_MODEL' environment variable contains invalid or unsupported chat model: ${OPENAI_CHAT_MODEL}`,
-    );
-  }
-  const OPENAI_EMBEDDING_MODEL = env.OPENAI_EMBEDDING_MODEL || 'text-embedding-ada-002';
-  if (!isOpenAIEmbeddingModel(OPENAI_EMBEDDING_MODEL)) {
-    throw new Error(
-      `'OPENAI_EMBEDDING_MODEL' environment variable contains invalid or unsupported embedding model: ${OPENAI_EMBEDDING_MODEL}`,
-    );
+  const OPENAI_CHAT_MODEL = env.OPENAI_CHAT_MODEL;
+  if (!OPENAI_CHAT_MODEL) {
+    throw new Error("'OPENAI_CHAT_MODEL' environment variable is required.");
   }
 
-  const MSGRAPH_API_TENANT_ID = env.MSGRAPH_API_TENANT_ID;
-  if (!MSGRAPH_API_TENANT_ID) {
-    throw new Error("'MSGRAPH_API_TENANT_ID' environment variable is required.");
+  const OPENAI_EMBEDDING_MODEL = env.OPENAI_EMBEDDING_MODEL;
+  if (!OPENAI_EMBEDDING_MODEL) {
+    throw new Error("'OPENAI_EMBEDDING_MODEL' environment variable is required.");
   }
 
-  const MSGRAPH_API_CLIENT_ID = env.MSGRAPH_API_CLIENT_ID;
-  if (!MSGRAPH_API_CLIENT_ID) {
-    throw new Error("'MSGRAPH_API_CLIENT_ID' environment variable is required.");
-  }
-
-  const MSGRAPH_API_CLIENT_SECRET = env.MSGRAPH_API_CLIENT_SECRET;
-  if (!MSGRAPH_API_CLIENT_SECRET) {
-    throw new Error("'MSGRAPH_API_CLIENT_SECRET' environment variable is required.");
-  }
+  // Microsoft Graph credentials are optional, as they are only needed by the
+  // 'retrieveEmails' tool. Coerce empty strings to `undefined` so that a blank
+  // entry in '.env' is treated as 'not configured'.
+  const MSGRAPH_API_TENANT_ID = env.MSGRAPH_API_TENANT_ID || undefined;
+  const MSGRAPH_API_CLIENT_ID = env.MSGRAPH_API_CLIENT_ID || undefined;
+  const MSGRAPH_API_CLIENT_SECRET = env.MSGRAPH_API_CLIENT_SECRET || undefined;
 
   return {
     NODE_ENV,
     PORT: Number(env.PORT) || 8001,
-    POSTGRES_DSN: env.POSTGRES_DSN || 'postgres://root:secret@localhost:5432/converge-development',
+    POSTGRES_DSN,
     SERVER_SHUTDOWN_GRACE_PERIOD: Number(env.SERVER_SHUTDOWN_GRACE_PERIOD) || 10_000,
 
     OPENAI_API_KEY,

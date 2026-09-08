@@ -1,5 +1,6 @@
 import { mkdirSync, readdirSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 import { createConsola } from 'consola';
 import ora from 'ora';
@@ -109,7 +110,9 @@ async function runAction() {
 
       let module;
       try {
-        module = await import(filepath);
+        // Convert to a file:// URL so that absolute Windows paths (e.g. 'C:\...')
+        // are accepted by the ESM loader.
+        module = await import(pathToFileURL(filepath).href);
       } catch (err) {
         spinner.fail(`Failed to import migration file: ${relative(process.cwd(), filepath)}`);
         throw err;

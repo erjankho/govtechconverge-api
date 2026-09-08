@@ -1,6 +1,6 @@
-import { beforeEach, describe, expect, it, test, vi } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 
-import OpenAI, { isOpenAIChatModel, isOpenAIEmbeddingModel } from './openai.js';
+import OpenAI from './openai.js';
 
 // Mock `gpt-tokenizer`.
 const mockIsWithinTokenLimit = vi.fn();
@@ -27,18 +27,6 @@ vi.mock('openai', () => ({
 describe('OpenAI', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-  });
-
-  describe('model validation', () => {
-    it('#isOpenAIChatModel', () => {
-      expect(isOpenAIChatModel('gpt-4o')).toBe(true);
-      expect(isOpenAIChatModel('invalid-model')).toBe(false);
-    });
-
-    it('#isOpenAIEmbeddingModel', () => {
-      expect(isOpenAIEmbeddingModel('text-embedding-ada-002')).toBe(true);
-      expect(isOpenAIEmbeddingModel('invalid-model')).toBe(false);
-    });
   });
 
   describe('chat', () => {
@@ -122,6 +110,7 @@ describe('OpenAI', () => {
       const result = await openai.chat.invoke({
         systemPrompt: 'System Prompt',
         messages: [{ role: 'user', content: 'User query' }],
+        model: 'gpt-4o',
       });
 
       expect(result).toEqual({
@@ -166,6 +155,7 @@ describe('OpenAI', () => {
           { role: 'user', content: 'User message 2' },
           { role: 'assistant', content: 'Assistant message 2', tool_calls: [] },
         ],
+        model: 'gpt-4o',
       });
 
       expect(result).toEqual({
@@ -199,6 +189,7 @@ describe('OpenAI', () => {
       const result = await openai.chat.invoke({
         systemPrompt: 'System Prompt',
         messages: [{ role: 'user', content: 'User query' }],
+        model: 'gpt-4o',
       });
 
       expect(result).toEqual({
@@ -225,6 +216,7 @@ describe('OpenAI', () => {
         openai.chat.invoke({
           systemPrompt: 'System Prompt',
           messages: [{ role: 'user', content: 'User query' }],
+          model: 'gpt-4o',
         }),
       ).rejects.toThrow('System prompt and user query exceeded the token limit');
 

@@ -8,7 +8,6 @@ export interface DBConfig {
   NODE_ENV: 'development' | 'production' | 'test';
   /**
    * The connection string to Postgres.
-   * @default 'postgres://root:secret@localhost:5432/converge-development'
    */
   POSTGRES_DSN: string;
 }
@@ -23,9 +22,14 @@ export function loadDBConfig(): DBConfig {
     );
   }
 
+  const POSTGRES_DSN = env.POSTGRES_DSN;
+  if (!POSTGRES_DSN) {
+    throw new Error("'POSTGRES_DSN' environment variable is required.");
+  }
+
   return {
     NODE_ENV,
 
-    POSTGRES_DSN: env.POSTGRES_DSN || 'postgres://root:secret@localhost:5432/converge-development',
+    POSTGRES_DSN,
   };
 }

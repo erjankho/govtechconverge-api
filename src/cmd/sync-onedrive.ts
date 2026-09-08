@@ -224,7 +224,7 @@ async function runAction(config: SyncConfig, logger: Logger) {
                       chunks.map<Promise<EmbeddingNew>>(async (chunk) => ({
                         file_id: file.id,
                         embedding: JSON.stringify(
-                          await llm.embedding.invoke(chunk, 'text-embedding-ada-002'),
+                          await llm.embedding.invoke(chunk, config.OPENAI_EMBEDDING_MODEL),
                         ),
                         text: chunk,
                       })),

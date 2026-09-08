@@ -1,5 +1,4 @@
 import type { OpenAIEmbeddingModel } from '../ai/llm/openai.js';
-import { isOpenAIEmbeddingModel } from '../ai/llm/openai.js';
 import { loadEnv } from '../internal/load-env.js';
 
 export interface SyncConfig {
@@ -10,7 +9,6 @@ export interface SyncConfig {
   NODE_ENV: 'development' | 'production' | 'test';
   /**
    * The connection string to Postgres.
-   * @default 'postgres://root:secret@localhost:5432/converge-development'
    */
   POSTGRES_DSN: string;
   /**
@@ -43,7 +41,6 @@ export interface SyncConfig {
   OPENAI_API_BASE_URL: string;
   /**
    * The embedding model for OpenAI.
-   * @default 'text-embedding-ada-002'
    */
   OPENAI_EMBEDDING_MODEL: OpenAIEmbeddingModel;
 }
@@ -56,6 +53,11 @@ export function loadSyncConfig(): SyncConfig {
     throw new Error(
       "'NODE_ENV' environment variable must be either 'development', 'production' or 'test'.",
     );
+  }
+
+  const POSTGRES_DSN = env.POSTGRES_DSN;
+  if (!POSTGRES_DSN) {
+    throw new Error("'POSTGRES_DSN' environment variable is required.");
   }
 
   const MSGRAPH_API_TENANT_ID = env.MSGRAPH_API_TENANT_ID;
@@ -92,16 +94,14 @@ export function loadSyncConfig(): SyncConfig {
     throw new Error("'OPENAI_API_BASE_URL' environment variable is required.");
   }
 
-  const OPENAI_EMBEDDING_MODEL = env.OPENAI_EMBEDDING_MODEL || 'text-embedding-ada-002';
-  if (!isOpenAIEmbeddingModel(OPENAI_EMBEDDING_MODEL)) {
-    throw new Error(
-      `'OPENAI_EMBEDDING_MODEL' environment variable contains invalid or unsupported embedding model: ${OPENAI_EMBEDDING_MODEL}`,
-    );
+  const OPENAI_EMBEDDING_MODEL = env.OPENAI_EMBEDDING_MODEL;
+  if (!OPENAI_EMBEDDING_MODEL) {
+    throw new Error("'OPENAI_EMBEDDING_MODEL' environment variable is required.");
   }
 
   return {
     NODE_ENV,
-    POSTGRES_DSN: env.POSTGRES_DSN || 'postgres://root:secret@localhost:5432/converge-development',
+    POSTGRES_DSN,
 
     MSGRAPH_API_TENANT_ID,
     MSGRAPH_API_CLIENT_ID,

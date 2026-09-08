@@ -31,10 +31,7 @@ pnpm dev:watch
 1. Before interacting with the chatbot, you need to create a conversation:
 
 ```
-curl -X POST \
-  http://localhost:8001/conversations \
-  -H "Content-Type: application/json" \
-  -d '{"email": "some_wog_email@tech.gov.sg"}'
+curl.exe -s -i -X POST http://localhost:8001/users -H "Content-Type: application/json" -d '{\"email\": \"some_wog_email@tech.gov.sg\"}'
 ```
 
 This endpoint will return the conversationId needed for Messages API endpoint.
@@ -42,10 +39,7 @@ This endpoint will return the conversationId needed for Messages API endpoint.
 2. Interact with the chatbot by creating a message:
 
 ```
-curl -X POST \
-http://localhost:8001/messages \
--H "Content-Type: application/json" \
--d '{"conversationId": "0194a704-74bb-7c49-87b4-71cd477b3ab0", "content": "hello! what can you do for me?"}'
+curl.exe -s -i -X POST http://localhost:8001/messages -H "Content-Type: application/json" -d '{\"conversationId\": \"01a07fc4-39ad-78d0-b16c-751e052b12df\", \"content\": \"hello! what can you do for me?\"}'
 ```
 
 ### Database

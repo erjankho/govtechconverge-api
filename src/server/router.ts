@@ -49,11 +49,7 @@ export function createRouter({ config, db, logger }: CreateRouterOptions) {
       apiKey: config.OPENAI_API_KEY,
       baseURL: config.OPENAI_API_BASE_URL,
     }),
-    msGraph: new MSGraphClient({
-      tenantId: config.MSGRAPH_API_TENANT_ID,
-      clientId: config.MSGRAPH_API_CLIENT_ID,
-      clientSecret: config.MSGRAPH_API_CLIENT_SECRET,
-    }),
+    msGraph: createMSGraphClientFactory(config),
   };
 
   router.post('/users', routeCreateUser(deps));
@@ -68,7 +64,44 @@ interface Deps {
   db: DB;
   logger: Logger;
   llm: OpenAI;
-  msGraph: MSGraphClient;
+  /**
+   * Resolves the Microsoft Graph client, constructing it on first use.
+   * @throws {Error} if Microsoft Graph is not configured.
+   */
+  msGraph: () => MSGraphClient;
+}
+
+/**
+ * Returns a factory that lazily constructs the Microsoft Graph client, so that
+ * the server can start without Microsoft Graph credentials. The client is only
+ * needed by the 'retrieveEmails' tool, and `ClientSecretCredential` rejects
+ * empty credentials at construction time.
+ * @param config - The server configuration.
+ */
+function createMSGraphClientFactory(config: ServerConfig): () => MSGraphClient {
+  let client: MSGraphClient | null = null;
+
+  return () => {
+    if (client) {
+      return client;
+    }
+
+    const {
+      MSGRAPH_API_TENANT_ID: tenantId,
+      MSGRAPH_API_CLIENT_ID: clientId,
+      MSGRAPH_API_CLIENT_SECRET: clientSecret,
+    } = config;
+
+    if (!tenantId || !clientId || !clientSecret) {
+      throw new Error(
+        "Microsoft Graph is not configured. Set 'MSGRAPH_API_TENANT_ID', 'MSGRAPH_API_CLIENT_ID' and 'MSGRAPH_API_CLIENT_SECRET' to enable email retrieval.",
+      );
+    }
+
+    client = new MSGraphClient({ tenantId, clientId, clientSecret });
+
+    return client;
+  };
 }
 
 function routeCreateUser({ db }: Deps): RouteHandler {
@@ -349,7 +382,7 @@ function routeCreateMessage({ config, db, llm, msGraph }: Deps): RouteHandler {
         );
 
         for (const keyword of keywords) {
-          for await (const messages of msGraph.getMessagesByEmail(
+          for await (const messages of msGraph().getMessagesByEmail(
             user.email,
             keyword,
             new Date(startDate),
@@ -370,7 +403,7 @@ function routeCreateMessage({ config, db, llm, msGraph }: Deps): RouteHandler {
                   chunks.map(async (chunk) => ({
                     conversation_id: data.conversationId,
                     embedding: JSON.stringify(
-                      await llm.embedding.invoke(chunk, 'text-embedding-ada-002'),
+                      await llm.embedding.invoke(chunk, config.OPENAI_EMBEDDING_MODEL),
                     ),
                     expires_on: new Date(Date.now() + 24 * 60 * 60 * 1000),
                     text: chunk,
